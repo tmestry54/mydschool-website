@@ -9,3 +9,4 @@ package-lock.jsonbackend/
 node_modules/ 
 dist/ 
 .env 
+mydschool-backend/ 
