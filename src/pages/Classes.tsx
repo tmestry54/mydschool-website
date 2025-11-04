@@ -1,75 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // API service
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const classAPI = {
-  getAllClasses: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/classes`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch classes');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('getAllClasses error:', error);
-      throw { success: false, message: error.message || 'Failed to fetch classes' };
-    }
-  },
-
-  addClass: async (classData: { class_name: string; section_id: number; teacher_name: string }) => {
-    try {
-      console.log('Sending class data:', classData);
-      const response = await fetch(`${API_BASE_URL}/admin/classes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(classData),
-      });
-      const data = await response.json();
-      console.log('Server response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to add class');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('addClass error:', error);
-      throw { success: false, message: error.message || 'Failed to add class' };
-    }
-  },
-
-  getAllSections: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/sections`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch sections');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('getAllSections error:', error);
-      throw { success: false, message: error.message || 'Failed to fetch sections' };
-    }
-  },
-
-  deleteClass: async (classId: number) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/classes/${classId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete class');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('deleteClass error:', error);
-      throw { success: false, message: error.message || 'Failed to delete class' };
-    }
-  },
-};
+import { classAPI } from "../services/api";
 
 interface FormData {
   classWithDivision: string;

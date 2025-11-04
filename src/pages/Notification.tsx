@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { classAPI, notificationAPI, adminAPI } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { classAPI, notificationAPI, adminAPI, getFileUrl } from "../services/api"; // ✅ Add getFileUrl
+
 
 interface Notification {
   id: number;
@@ -84,22 +85,20 @@ export default function Notifications() {
       console.error('Error loading classes:', error);
     }
   };
-  const handleViewDocument = (filePath: string) => {
-    const fileUrl = `http://localhost:3001/${filePath}`;
-    window.open(fileUrl, '_blank');
-  };
-
+const handleViewDocument = (filePath: string) => {
+  const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
+  window.open(fileUrl, '_blank');
+};
   const handleDownloadDocument = (filePath: string, fileName: string) => {
-    const fileUrl = `http://localhost:3001/${filePath}`;
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = fileName || 'notification.pdf';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
+  const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = fileName || 'notification.pdf';
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
   const loadNotifications = async () => {
     try {
       const response = await notificationAPI.getAllNotifications();

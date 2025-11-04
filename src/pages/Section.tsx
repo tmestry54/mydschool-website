@@ -1,69 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { sectionAPI } from "../services/api";
-import { apiClient } from "../services/api";
-
-// API service
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-const adminAPI = {
-  getSections: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/sections`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch sections');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('getSections error:', error);
-      throw { success: false, message: error.message || 'Failed to fetch sections' };
-    }
-  },
-  
-  addSection: async (sectionData: { section: string; startTime: string; endTime: string }) => {
-    try {
-      console.log('Sending section data:', sectionData);
-      const response = await fetch(`${API_BASE_URL}/admin/sections`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          section_name: sectionData.section, // Map to backend expected field
-          start_time: sectionData.startTime,
-          end_time: sectionData.endTime
-        }),
-      });
-      const data = await response.json();
-      console.log('Server response:', data);
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to add section');
-      }
-      return data;
-    } catch (error: any) {
-      console.error('addSection error:', error);
-      throw { success: false, message: error.message || 'Failed to add section' };
-    }
-  },
-
- deleteSection: async (sectionId: number) => {
-    try {
-      if (!sectionId) {
-        throw { success: false, message: 'Section ID is required' };
-      }
-      const response = await apiClient.delete(`/admin/sections/${sectionId}`);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error deleting section:', error);
-      if (error.response && error.response.data) {
-        throw error.response.data;
-      }
-      throw { success: false, message: 'Failed to delete section' };
-    }
-  }
-
-};
 
 interface FormData {
   section: string;
@@ -111,7 +48,7 @@ export default function Sections() {
   const fetchSections = async () => {
     try {
       setIsLoading(true);
-      const result = await adminAPI.getSections();
+      const result = await sectionAPI.getAllSections();
       console.log('Fetched sections:', result);
       
       if (result.success) {
@@ -164,7 +101,7 @@ export default function Sections() {
 
     try {
       console.log('Submitting form data:', formData);
-      const result = await adminAPI.addSection(formData);
+      const result = await sectionAPI.addSection(formData);
       console.log('Add section result:', result);
       
       if (result.success) {

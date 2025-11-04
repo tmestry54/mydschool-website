@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { classAPI, adminAPI, profileAPI } from "../services/api";
+
 interface User {
   id: number;
   role: string;
@@ -31,7 +32,7 @@ export default function Profile() {
     parent_email: '',
     photo: null as File | null,
     excelFile: null as File | null,
-      zipFile: null as File | null  
+    zipFile: null as File | null  
   });
 
   const [classes, setClasses] = useState<Class[]>([]);
@@ -69,12 +70,11 @@ export default function Profile() {
 
   const loadClasses = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/classes`);
-      const data = await response.json();
-      if (data.success) {
-        setClasses(data.classes);
+      const response = await classAPI.getAllClasses();
+      if (response.success) {
+        setClasses(response.classes);
       } else {
-        console.error('Failed to load classes:', data.message);
+        console.error('Failed to load classes:', response.message);
       }
     } catch (error) {
       console.error('Error loading classes:', error);
@@ -88,13 +88,12 @@ export default function Profile() {
 
       console.log('Fetching profile for userId:', userId);
 
-      const response = await fetch(`${API_BASE_URL}/api/student/profile/${userId}`);
-      const data = await response.json();
+      const response = await profileAPI.getProfile(userId);
 
-      console.log('Profile API response:', data);
+      console.log('Profile API response:', response);
 
-      if (data.success) {
-        const profile = data.profile;
+      if (response.success) {
+        const profile = response.profile;
         
         let formattedDate = '';
         if (profile.date_of_birth) {
@@ -120,13 +119,13 @@ export default function Profile() {
           parent_email: profile.parent_email || '',
           photo: null,
           excelFile: null,
-          zipFile :null
+          zipFile: null
         });
         setIsEditing(true);
       } else {
-        setError(data.message || 'Failed to load profile');
+        setError(response.message || 'Failed to load profile');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading profile:', error);
       setError('Network error. Please check if the backend is running.');
     } finally {
@@ -176,31 +175,27 @@ export default function Profile() {
         const value = formData[key as keyof typeof formData];
         if (key === 'photo' && value instanceof File) {
           submitData.append('photo', value);
-        } else if (key !== 'photo' && key !== 'excelFile' && value !== '') {
+        } else if (key !== 'photo' && key !== 'excelFile' && key !== 'zipFile' && value !== '') {
           submitData.append(key, String(value));
         }
       });
 
-      let response;
+      let result;
       if (isEditing && user.role === 'student') {
         console.log('Updating profile for user:', user.id);
-        response = await fetch(`${API_BASE_URL}/api/student/profile/${user.id}`, {
-          method: 'PUT',
-          body: submitData
-        });
+        result = await profileAPI.updateProfile(user.id, submitData);
       } else {
         console.log('Creating new student');
-        response = await fetch(`${API_BASE_URL}/api/admin/students`,{
-          method: 'POST',
-          body: submitData
-        });
+        result = await adminAPI.addStudent(submitData);
       }
 
-      const data = await response.json();
-      console.log('Save response:', data);
+      console.log('Save response:', result);
 
-      if (data.success) {
+      if (result.success) {
         setSuccess(isEditing ? 'Profile updated successfully!' : 'Student added successfully!');
+
+        // Dispatch event to refresh dashboard
+        window.dispatchEvent(new Event('studentDataUpdated'));
 
         if (!isEditing) {
           handleReset();
@@ -208,11 +203,11 @@ export default function Profile() {
           loadStudentProfile(user.id);
         }
       } else {
-        setError(data.message || 'Operation failed');
+        setError(result.message || 'Operation failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
-      setError('Error occurred while saving. Please try again.');
+      setError(error.message || 'Error occurred while saving. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -236,7 +231,7 @@ export default function Profile() {
       parent_email: '',
       photo: null,
       excelFile: null,
-      zipFile :null
+      zipFile: null
     });
     setError('');
     setSuccess('');
@@ -253,74 +248,67 @@ export default function Profile() {
       setError('');
       setSuccess('');
 
-      const uploadData = new FormData();
-      uploadData.append('excelFile', formData.excelFile);
+      const result = await adminAPI.bulkUploadStudents(formData.excelFile);
 
-      const response = await fetch(`${API_BASE_URL}/api/admin/students/bulk-upload`, {
-        method: 'POST',
-        body: uploadData
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess(`Successfully imported ${data.data.imported} students!`);
-        if (data.data.failed > 0) {
-          console.log('Import errors:', data.data.errorDetails);
+      if (result.success) {
+        setSuccess(`Successfully imported ${result.data.imported} students!`);
+        if (result.data.failed > 0) {
+          console.log('Import errors:', result.data.errorDetails);
         }
+
+        // Dispatch event to refresh dashboard
+        window.dispatchEvent(new Event('studentDataUpdated'));
 
         setFormData(prev => ({ ...prev, excelFile: null }));
       } else {
-        setError(data.message || 'Bulk upload failed');
+        setError(result.message || 'Bulk upload failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during bulk upload:', error);
-      setError('Error occurred during upload. Please try again.');
+      setError(error.message || 'Error occurred during upload. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-const handleZipUpload = async () => {
-  if (!formData.zipFile) {
-    setError('Please select a ZIP file first');
-    return;
-  }
 
-  try {
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    const uploadData = new FormData();
-    uploadData.append('zipFile', formData.zipFile);
-
-    const response = await fetch(`${API_BASE_URL}/api/admin/students/bulk-upload-zip`,  {
-      method: 'POST',
-      body: uploadData
-    });
-const data = await response.json();
-
-    if (data.success) {
-      setSuccess(
-        `Successfully imported ${data.data.imported} students! ` +
-        `Photos uploaded: ${data.data.photosUploaded || 0}`
-      );
-      if (data.data.failed > 0) {
-        console.log('Import errors:', data.data.errorDetails);
-        setError(`${data.data.failed} students failed to import. Check console for details.`);
-      }
-
-      setFormData(prev => ({ ...prev, zipFile: null }));
-    } else {
-      setError(data.message || 'ZIP upload failed');
+  const handleZipUpload = async () => {
+    if (!formData.zipFile) {
+      setError('Please select a ZIP file first');
+      return;
     }
-  } catch (error) {
-    console.error('Error during ZIP upload:', error);
-    setError('Error occurred during ZIP upload. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
+
+    try {
+      setLoading(true);
+      setError('');
+      setSuccess('');
+
+      const result = await adminAPI.bulkUploadWithZip(formData.zipFile);
+
+      if (result.success) {
+        setSuccess(
+          `Successfully imported ${result.data.imported} students! ` +
+          `Photos uploaded: ${result.data.photosUploaded || 0}`
+        );
+        if (result.data.failed > 0) {
+          console.log('Import errors:', result.data.errorDetails);
+          setError(`${result.data.failed} students failed to import. Check console for details.`);
+        }
+
+        // Dispatch event to refresh dashboard
+        window.dispatchEvent(new Event('studentDataUpdated'));
+
+        setFormData(prev => ({ ...prev, zipFile: null }));
+      } else {
+        setError(result.message || 'ZIP upload failed');
+      }
+    } catch (error: any) {
+      console.error('Error during ZIP upload:', error);
+      setError(error.message || 'Error occurred during ZIP upload. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("token");

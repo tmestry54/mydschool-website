@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { assignmentAPI, classAPI } from "../services/api";
-
-interface AssignmentForm {
+import { assignmentAPI, classAPI, getFileUrl } from "../services/api"; // ✅ Add getFileUrl
+interface  AssignmentForm {
   class_id: string;
   title: string;
   description: string;
@@ -102,14 +101,13 @@ export default function Assignments() {
     setViewMode(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  const handleViewDocument = (filePath: string) => {
-    const fileUrl = `http://localhost:3001/${filePath}`;
-    window.open(fileUrl, '_blank');
-  };
-
+const handleViewDocument = (filePath: string) => {
+  const fileUrl = getFileUrl(filePath);
+  window.open(fileUrl, '_blank');
+};
   const handleDownloadDocument = (filePath: string, fileName: string) => {
-    const fileUrl = `http://localhost:3001/${filePath}`;
-    const link = document.createElement('a');
+  const fileUrl = getFileUrl(filePath);  
+  const link = document.createElement('a');
     link.href = fileUrl;
     link.download = fileName || 'assignment.pdf';
     link.target = '_blank';

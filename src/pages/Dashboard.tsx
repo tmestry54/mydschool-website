@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Assignment from "./Assignment";
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { apiClient } from "../services/api";
 interface Birthday {
   id: number;
   name: string;
@@ -119,20 +119,21 @@ window.addEventListener('assignmentDataUpdated', handleDataUpdate); // ADD THIS 
       setLoading(true);
       
       // Try to load real data from API, fallback to mock data if endpoints don't exist
-      const responses = await Promise.allSettled([
-     fetch(`${API_BASE_URL}/api/admin/students`),
-     fetch(`${API_BASE_URL}/api/admin/classes`),
-     fetch(`${API_BASE_URL}/api/admin/notifications`),
-     fetch(`${API_BASE_URL}/api/admin/assignments`)]);
+   const responses = await Promise.allSettled([
+  apiClient.get('/admin/students'),
+  apiClient.get('/admin/classes'),
+  apiClient.get('/admin/notifications'),
+  apiClient.get('/admin/assignments')
+]);
 
       let students: Student[] = [];
       let classes: Class[] = [];
       let notifications: Notification[] = [];
       let assignments: Assignment[] = [];
 
-if (responses[3].status === 'fulfilled' && responses[3].value.ok) {
+if (responses[3].status === 'fulfilled') {
   try {
-    const assignmentsData = await (responses[3].value as Response).json();
+    const assignmentsData = responses[3].value.data; // ✅ FIXED: Access .data directly
     if (assignmentsData.success && Array.isArray(assignmentsData.assignments)) {
       assignments = assignmentsData.assignments;
     }
@@ -140,11 +141,10 @@ if (responses[3].status === 'fulfilled' && responses[3].value.ok) {
     console.error('Error parsing assignments data:', e);
   }
 }
-
       // Handle students response
-      if (responses[0].status === 'fulfilled' && responses[0].value.ok) {
+    if (responses[0].status === 'fulfilled')  {
         try {
-          const studentsData = await (responses[0].value as Response).json();
+        const studentsData = responses[0].value.data;
           if (studentsData.success && Array.isArray(studentsData.students)) {
             students = studentsData.students;
           }
@@ -154,29 +154,27 @@ if (responses[3].status === 'fulfilled' && responses[3].value.ok) {
       }
 
       // Handle classes response
-      if (responses[1].status === 'fulfilled' && responses[1].value.ok) {
-        try {
-          const classesData = await (responses[1].value as Response).json();
-          if (classesData.success && Array.isArray(classesData.classes)) {
-            classes = classesData.classes;
-          }
-        } catch (e) {
-          console.error('Error parsing classes data:', e);
-        }
-      }
-
+  if (responses[1].status === 'fulfilled') {
+  try {
+    const classesData = responses[1].value.data; // ✅ FIXED: Access .data directly
+    if (classesData.success && Array.isArray(classesData.classes)) {
+      classes = classesData.classes;
+    }
+  } catch (e) {
+    console.error('Error parsing classes data:', e);
+  }
+}
       // Handle notifications response
-      if (responses[2].status === 'fulfilled' && responses[2].value.ok) {
-        try {
-          const notificationsData = await (responses[2].value as Response).json();
-          if (notificationsData.success && Array.isArray(notificationsData.notifications)) {
-            notifications = notificationsData.notifications;
-          }
-        } catch (e) {
-          console.error('Error parsing notifications data:', e);
-        }
-      }
-
+   if (responses[2].status === 'fulfilled') {
+  try {
+    const notificationsData = responses[2].value.data; // ✅ FIXED: Access .data directly
+    if (notificationsData.success && Array.isArray(notificationsData.notifications)) {
+      notifications = notificationsData.notifications;
+    }
+  } catch (e) {
+    console.error('Error parsing notifications data:', e);
+  }
+}
       // Calculate today's birthdays
       const today = new Date();
       const todaysBirthdays: Birthday[] = students
