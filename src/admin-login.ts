@@ -6,25 +6,17 @@ interface LoginResult {
   userId?: string;
   user?: any;
 }
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+// ✅ This should automatically use production URL when deployed
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 export async function adminLogin(username: string, password: string): Promise<LoginResult> {
   try {
     console.log('🔄 Attempting login for:', username);
+    console.log('🌐 API URL:', API_BASE_URL); // Debug log
     
-    // First check if backend is reachable
-    const healthCheck = await fetch(`${API_BASE_URL}/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
-    if (!healthCheck.ok) {
-      throw new Error('Backend server is not responding');
-    }
-    
-    // Proceed with login
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    // ✅ Remove health check - just try login directly
+    const response = await fetch(`${API_BASE_URL}/api/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,7 +28,8 @@ export async function adminLogin(username: string, password: string): Promise<Lo
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
@@ -51,7 +44,7 @@ export async function adminLogin(username: string, password: string): Promise<Lo
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
       return {
         success: false,
-        message: 'Cannot connect to server. Please ensure the backend is running on http://localhost:3001'
+        message: 'Cannot connect to server. Please check your internet connection.'
       };
     }
     
