@@ -79,47 +79,57 @@ export default function Sections() {
     }));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setMessage({ type: '', text: '' });
+  // Replace your handleSave function with this fixed version:
 
-    if (!formData.section || !formData.startTime || !formData.endTime) {
-      setMessage({ type: 'error', text: 'Please fill in all required fields (Section, Start Time, End Time)' });
-      setIsLoading(false);
-      return;
-    }
+const handleSave = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setMessage({ type: '', text: '' });
 
-    if (formData.startTime >= formData.endTime) {
-      setMessage({ type: 'error', text: 'End time must be after start time' });
-      setIsLoading(false);
-      return;
-    }
+  if (!formData.section || !formData.startTime || !formData.endTime) {
+    setMessage({ type: 'error', text: 'Please fill in all required fields (Section, Start Time, End Time)' });
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      console.log('Submitting form data:', formData);
-      const result = await sectionAPI.addSection(formData);
-      console.log('Add section result:', result);
+  if (formData.startTime >= formData.endTime) {
+    setMessage({ type: 'error', text: 'End time must be after start time' });
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    console.log('Submitting form data:', formData);
+    
+    // ✅ FIX: Send data with correct field names that backend expects
+    const payload = {
+      section_name: formData.section,  // Backend expects 'section_name'
+      start_time: formData.startTime,  // Backend expects 'start_time'
+      end_time: formData.endTime       // Backend expects 'end_time'
+    };
+    
+    console.log('Sending payload to backend:', payload);
+    const result = await sectionAPI.addSection(payload);
+    console.log('Add section result:', result);
+    
+    if (result.success) {
+      setMessage({ type: 'success', text: 'Section saved successfully!' });
+      setFormData({ section: '', startTime: '', endTime: '' });
+      await fetchSections();
       
-      if (result.success) {
-        setMessage({ type: 'success', text: 'Section saved successfully!' });
-        setFormData({ section: '', startTime: '', endTime: '' });
-        await fetchSections();
-        
-        setTimeout(() => {
-          setMessage({ type: '', text: '' });
-        }, 3000);
-      } else {
-        setMessage({ type: 'error', text: result.message || 'Failed to save section' });
-      }
-    } catch (error: any) {
-      console.error('Save section error:', error);
-      setMessage({ type: 'error', text: error.message || 'Failed to save section' });
-    } finally {
-      setIsLoading(false);
+      setTimeout(() => {
+        setMessage({ type: '', text: '' });
+      }, 3000);
+    } else {
+      setMessage({ type: 'error', text: result.message || 'Failed to save section' });
     }
-  };
-
+  } catch (error: any) {
+    console.error('Save section error:', error);
+    setMessage({ type: 'error', text: error.message || 'Failed to save section' });
+  } finally {
+    setIsLoading(false);
+  }
+};
   const sectionOptions: SectionOption[] = [
     { value: 'KG', label: 'Kindergarten', color: 'from-pink-500 to-rose-500' },
     { value: 'Primary', label: 'Primary School', color: 'from-blue-500 to-cyan-500' },
