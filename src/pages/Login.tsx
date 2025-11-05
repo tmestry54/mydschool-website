@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { authAPI } from "../services/api";
 
-import {authAPI} from "../services/api";
 export default function Login() {
   const navigate = useNavigate();
   const [msg, setMsg] = useState("");
@@ -10,59 +10,53 @@ export default function Login() {
   const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
-    // trigger fade-in animation on mount
     setTimeout(() => setFadeIn(true), 50);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const form = e.target as HTMLFormElement;
-  const formData = new FormData(form);
-  const username = formData.get("username") as string;
-  const password = formData.get("password") as string;
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
 
-  if (!username.trim() || !password) {
-    setMsg("Please enter both username and password");
-    return;
-  }
-
-  setLoading(true);
-  setMsg("");
-
-  try {
-    console.log('🔐 Attempting login...');
-    const response = await authAPI.login(username, password);
-    
-    console.log('📥 Login response:', response);
-    
-    if (response.success && response.user) {
-      console.log('✅ Login successful, saving user data...');
-      
-      // Save user data
-      const userData = JSON.stringify(response.user);
-      sessionStorage.setItem("currentUser", userData);
-      localStorage.setItem("currentUser", userData);
-      
-      console.log('✅ User data saved, navigating to dashboard...');
-      
-      // Force navigation with window.location as fallback
-      try {
-        navigate("/dashboard", { replace: true });
-      } catch (navError) {
-        console.log('⚠️ React Router navigation failed, using window.location...');
-        window.location.href = "/dashboard";
-      }
-    } else {
-      console.log('❌ Login failed:', response.message);
-      setMsg(response.message || "Login failed");
+    if (!username.trim() || !password) {
+      setMsg("Please enter both username and password");
+      return;
     }
-  } catch (error: any) {
-    console.error('❌ Login error:', error);
-    setMsg(error.message || "Invalid username or password");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+    setMsg("");
+   try {
+      console.log('🔐 Attempting login with:', { username });
+      const response = await authAPI.login(username, password);
+      console.log('📥 Login response:', response);
+      
+      if (response.success) {
+        console.log('✅ Login successful!');
+        
+        // Save user data
+        sessionStorage.setItem("currentUser", JSON.stringify(response.user));
+        localStorage.setItem("currentUser", JSON.stringify(response.user));
+        
+        console.log('✅ User data saved, navigating...');
+        
+        // Navigate to dashboard
+        setTimeout(() => {
+          navigate("/dashboard", { replace: true });
+        }, 100);
+      } else {
+        console.log('❌ Login failed:', response.message);
+        setMsg(response.message || "Login failed");
+      }
+    } catch (error: any) {
+      console.error('❌ Login error:', error);
+      setMsg(error.message || "Invalid username or password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 return (
     <div
       className={`min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 transition-opacity duration-1000 ${

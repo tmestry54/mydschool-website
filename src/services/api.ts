@@ -441,7 +441,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
   : 'http://localhost:3001/api';
 
 console.log('🌐 API Base URL:', API_BASE_URL);
-
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -449,7 +448,6 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   }
 });
-
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -479,10 +477,14 @@ export const getFileUrl = (filePath: string): string => {
 export const authAPI = {
   login: async (username: string, password: string) => {
     try {
+      console.log('🔐 Calling API:', `${API_BASE_URL}/login`);
       const response = await apiClient.post('/login', { username, password });
+      console.log('✅ API Response:', response.data);
       return response.data;
     } catch (error: any) {
+      console.error('❌ Login error:', error);
       if (error.response) {
+        console.error('Error response:', error.response.data);
         throw error.response.data;
       } else if (error.request) {
         throw { success: false, message: 'Network error - server not responding' };
@@ -492,7 +494,6 @@ export const authAPI = {
     }
   }
 };
-
 export const adminAPI = {
   getStudents: async () => {
     try {
