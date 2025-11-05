@@ -81,7 +81,7 @@ export default function FlexibleDashboard() {
       { id: 1, activity: "System initialized successfully", time: "Recently", type: "system" }
     ]
   });
-  
+
   const [loading, setLoading] = useState(true);
 
   // ✅ SINGLE COMBINED useEffect
@@ -93,7 +93,7 @@ export default function FlexibleDashboard() {
       navigate("/login", { replace: true });
       return;
     }
-    
+
     console.log('✅ User authenticated:', JSON.parse(user));
 
     // Load initial data
@@ -121,38 +121,38 @@ export default function FlexibleDashboard() {
     };
   }, [navigate]); // ✅ ADDED navigate TO DEPENDENCIES
 
-  
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Try to load real data from API, fallback to mock data if endpoints don't exist
-   const responses = await Promise.allSettled([
-  apiClient.get('/admin/students'),
-  apiClient.get('/admin/classes'),
-  apiClient.get('/admin/notifications'),
-  apiClient.get('/admin/assignments')
-]);
+      const responses = await Promise.allSettled([
+        apiClient.get('/admin/students'),
+        apiClient.get('/admin/classes'),
+        apiClient.get('/admin/notifications'),
+        apiClient.get('/admin/assignments')
+      ]);
 
       let students: Student[] = [];
       let classes: Class[] = [];
       let notifications: Notification[] = [];
       let assignments: Assignment[] = [];
 
-if (responses[3].status === 'fulfilled') {
-  try {
-    const assignmentsData = responses[3].value.data; // ✅ FIXED: Access .data directly
-    if (assignmentsData.success && Array.isArray(assignmentsData.assignments)) {
-      assignments = assignmentsData.assignments;
-    }
-  } catch (e) {
-    console.error('Error parsing assignments data:', e);
-  }
-}
-      // Handle students response
-    if (responses[0].status === 'fulfilled')  {
+      if (responses[3].status === 'fulfilled') {
         try {
-        const studentsData = responses[0].value.data;
+          const assignmentsData = responses[3].value.data; // ✅ FIXED: Access .data directly
+          if (assignmentsData.success && Array.isArray(assignmentsData.assignments)) {
+            assignments = assignmentsData.assignments;
+          }
+        } catch (e) {
+          console.error('Error parsing assignments data:', e);
+        }
+      }
+      // Handle students response
+      if (responses[0].status === 'fulfilled') {
+        try {
+          const studentsData = responses[0].value.data;
           if (studentsData.success && Array.isArray(studentsData.students)) {
             students = studentsData.students;
           }
@@ -162,27 +162,27 @@ if (responses[3].status === 'fulfilled') {
       }
 
       // Handle classes response
-  if (responses[1].status === 'fulfilled') {
-  try {
-    const classesData = responses[1].value.data; // ✅ FIXED: Access .data directly
-    if (classesData.success && Array.isArray(classesData.classes)) {
-      classes = classesData.classes;
-    }
-  } catch (e) {
-    console.error('Error parsing classes data:', e);
-  }
-}
+      if (responses[1].status === 'fulfilled') {
+        try {
+          const classesData = responses[1].value.data; // ✅ FIXED: Access .data directly
+          if (classesData.success && Array.isArray(classesData.classes)) {
+            classes = classesData.classes;
+          }
+        } catch (e) {
+          console.error('Error parsing classes data:', e);
+        }
+      }
       // Handle notifications response
-   if (responses[2].status === 'fulfilled') {
-  try {
-    const notificationsData = responses[2].value.data; // ✅ FIXED: Access .data directly
-    if (notificationsData.success && Array.isArray(notificationsData.notifications)) {
-      notifications = notificationsData.notifications;
-    }
-  } catch (e) {
-    console.error('Error parsing notifications data:', e);
-  }
-}
+      if (responses[2].status === 'fulfilled') {
+        try {
+          const notificationsData = responses[2].value.data; // ✅ FIXED: Access .data directly
+          if (notificationsData.success && Array.isArray(notificationsData.notifications)) {
+            notifications = notificationsData.notifications;
+          }
+        } catch (e) {
+          console.error('Error parsing notifications data:', e);
+        }
+      }
       // Calculate today's birthdays
       const today = new Date();
       const todaysBirthdays: Birthday[] = students
@@ -202,14 +202,14 @@ if (responses[3].status === 'fulfilled') {
           id: student.id,
           name: `${student.first_name || ''} ${student.last_name || ''}`.trim(),
           class: student.class_name || 'N/A',
-          age: student.date_of_birth 
+          age: student.date_of_birth
             ? today.getFullYear() - new Date(student.date_of_birth).getFullYear()
             : 0
         }));
 
       // Generate recent activities based on actual data
       const recentActivities: Activity[] = [];
-      
+
       // Add recent student activities
       if (students.length > 0) {
         const recentStudents = students.slice(-3).reverse();
@@ -236,17 +236,17 @@ if (responses[3].status === 'fulfilled') {
         });
       }
 
-if (assignments.length > 0) {
-  const recentAssignments = assignments.slice(-3).reverse();
-  recentAssignments.forEach((assignment, index) => {
-    recentActivities.push({
-      id: Date.now() + index + 200,
-      activity: `New Assignment: "${assignment.title}" for ${assignment.class_name || 'N/A'}`, // Use class_name
-      time: getRelativeTime(assignment.created_at),
-      type: "assignment"
-    });
-  });
-}
+      if (assignments.length > 0) {
+        const recentAssignments = assignments.slice(-3).reverse();
+        recentAssignments.forEach((assignment, index) => {
+          recentActivities.push({
+            id: Date.now() + index + 200,
+            activity: `New Assignment: "${assignment.title}" for ${assignment.class_name || 'N/A'}`, // Use class_name
+            time: getRelativeTime(assignment.created_at),
+            type: "assignment"
+          });
+        });
+      }
 
       // If no real activities, add default one
       if (recentActivities.length === 0) {
@@ -285,7 +285,7 @@ if (assignments.length > 0) {
 
   const getRelativeTime = (dateString?: string): string => {
     if (!dateString) return 'Recently';
-    
+
     try {
       const date = new Date(dateString);
       const now = new Date();
@@ -309,20 +309,20 @@ if (assignments.length > 0) {
   };
 
   const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: true, 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour12: true,
+      hour: 'numeric',
       minute: '2-digit',
       second: '2-digit'
     });
   };
 
   const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -334,7 +334,7 @@ if (assignments.length > 0) {
       reminder: "⏰",
       notification: "📢",
       system: "🔧",
-      assignment: "📝", 
+      assignment: "📝",
     };
     return icons[type] || "📝";
   };
@@ -362,29 +362,28 @@ if (assignments.length > 0) {
               </div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-wide">MyDschool Portal</h1>
             </div>
-            
+
             <nav className="flex items-center space-x-1">
               {[
                 { name: 'Dashboard', path: '/dashboard', active: true },
                 { name: 'Sections', path: '/sections' },
                 { name: 'Classes', path: '/classes' },
-                {name: "Assignments", path: '/assignments'},
+                { name: 'Assignments', path: '/assignments' },
                 { name: 'Profile', path: '/profile' },
                 { name: 'Notifications', path: '/notifications' }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    item.active 
-                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg' 
+                  onClick={() => navigate(item.path)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
+                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
                       : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
-                  }`}
+                    }`}
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
-              <button 
+              <button
                 onClick={handleLogout}
                 className="ml-2 px-3 py-2 bg-white/10 hover:bg-red-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
@@ -432,33 +431,33 @@ if (assignments.length > 0) {
             </div>
           ))}
         </div>
-          
-          
- {/* Quick Actions - Horizontal Flexible */}
-        <div><button 
-              onClick={loadDashboardData}
-              className="w-full mt-4 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Refresh Activities →
-            </button></div> <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+
+
+        {/* Quick Actions - Horizontal Flexible */}
+        <div><button
+          onClick={loadDashboardData}
+          className="w-full mt-4 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
+        >
+          Refresh Activities →
+        </button></div> <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">Quick Actions</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
-              { name: "Add Student", icon: "👥", color: "from-blue-500 to-blue-600", href: "/profile" },
-              { name: "Manage Classes", icon: "🏫", color: "from-green-500 to-green-600", href: "/classes" },
-              { name: "Send Notice", icon: "📢", color: "from-purple-500 to-purple-600", href: "/notifications" },
-              { name: "Assignments", icon: "📝", color: "from-orange-500 to-orange-600", href: "/assignments" }
-              
+              { name: "Add Student", icon: "👥", color: "from-blue-500 to-blue-600", path: "/profile" },
+              { name: "Manage Classes", icon: "🏫", color: "from-green-500 to-green-600", path: "/classes" },
+              { name: "Send Notice", icon: "📢", color: "from-purple-500 to-purple-600", path: "/notifications" },
+              { name: "Assignments", icon: "📝", color: "from-orange-500 to-orange-600", path: "/assignments" }
             ].map((action, index) => (
-              <a 
+              <button
                 key={index}
-                href={action.href}
-                className={`p-3 sm:p-4 bg-gradient-to-r ${action.color} text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium text-xs sm:text-sm text-center block`}
+                onClick={() => navigate(action.path)}
+                className={`p-3 sm:p-4 bg-gradient-to-r ${action.color} text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium text-xs sm:text-sm text-center`}
               >
                 <span className="text-xl sm:text-2xl block mb-2">{action.icon}</span>
                 <span className="leading-tight">{action.name}</span>
-              </a>
-            ))}</div></div>
+              </button>
+            ))}
+          </div></div>
         {/* Main Dashboard Content - Flexible Horizontal Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-6">
           {/* Today's Birthdays - Flexible */}
@@ -487,7 +486,7 @@ if (assignments.length > 0) {
             )}
           </div>
 
-         
+
           {/* Recent Activities - Flexible */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -509,9 +508,9 @@ if (assignments.length > 0) {
                 <p className="text-gray-500 text-center py-8 text-sm">No recent activities</p>
               )}
             </div>
-         
 
-       
+
+
           </div>
         </div>
       </main>

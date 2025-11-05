@@ -21,7 +21,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/sections" element={<Section />} />
         <Route path="/classes" element={<Class />} />
-        <Route path="/Assignments" element={<Assignment />} />
+        <Route path="/assignments" element={<Assignment />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={<Notification />} />
         
