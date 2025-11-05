@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ ADD THIS IMPORT
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "../services/api";
 
 interface Birthday {
@@ -64,7 +64,7 @@ interface Notification {
 }
 
 export default function FlexibleDashboard() {
-  const navigate = useNavigate(); // ✅ MOVED TO TOP
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     todaysBirthdays: [
@@ -84,9 +84,7 @@ export default function FlexibleDashboard() {
 
   const [loading, setLoading] = useState(true);
 
-  // ✅ SINGLE COMBINED useEffect
   useEffect(() => {
-    // Check authentication first
     const user = localStorage.getItem("currentUser");
     if (!user) {
       console.log('❌ No user found, redirecting to login...');
@@ -95,16 +93,12 @@ export default function FlexibleDashboard() {
     }
 
     console.log('✅ User authenticated:', JSON.parse(user));
-
-    // Load initial data
     loadDashboardData();
 
-    // Set up time update
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // Listen for data updates
     const handleDataUpdate = () => {
       console.log('Refreshing dashboard data...');
       loadDashboardData();
@@ -113,20 +107,17 @@ export default function FlexibleDashboard() {
     window.addEventListener('studentDataUpdated', handleDataUpdate);
     window.addEventListener('assignmentDataUpdated', handleDataUpdate);
 
-    // Cleanup function
     return () => {
       clearInterval(timer);
       window.removeEventListener('studentDataUpdated', handleDataUpdate);
       window.removeEventListener('assignmentDataUpdated', handleDataUpdate);
     };
-  }, [navigate]); // ✅ ADDED navigate TO DEPENDENCIES
-
+  }, [navigate]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
 
-      // Try to load real data from API, fallback to mock data if endpoints don't exist
       const responses = await Promise.allSettled([
         apiClient.get('/admin/students'),
         apiClient.get('/admin/classes'),
@@ -141,7 +132,7 @@ export default function FlexibleDashboard() {
 
       if (responses[3].status === 'fulfilled') {
         try {
-          const assignmentsData = responses[3].value.data; // ✅ FIXED: Access .data directly
+          const assignmentsData = responses[3].value.data;
           if (assignmentsData.success && Array.isArray(assignmentsData.assignments)) {
             assignments = assignmentsData.assignments;
           }
@@ -149,7 +140,7 @@ export default function FlexibleDashboard() {
           console.error('Error parsing assignments data:', e);
         }
       }
-      // Handle students response
+
       if (responses[0].status === 'fulfilled') {
         try {
           const studentsData = responses[0].value.data;
@@ -161,10 +152,9 @@ export default function FlexibleDashboard() {
         }
       }
 
-      // Handle classes response
       if (responses[1].status === 'fulfilled') {
         try {
-          const classesData = responses[1].value.data; // ✅ FIXED: Access .data directly
+          const classesData = responses[1].value.data;
           if (classesData.success && Array.isArray(classesData.classes)) {
             classes = classesData.classes;
           }
@@ -172,10 +162,10 @@ export default function FlexibleDashboard() {
           console.error('Error parsing classes data:', e);
         }
       }
-      // Handle notifications response
+
       if (responses[2].status === 'fulfilled') {
         try {
-          const notificationsData = responses[2].value.data; // ✅ FIXED: Access .data directly
+          const notificationsData = responses[2].value.data;
           if (notificationsData.success && Array.isArray(notificationsData.notifications)) {
             notifications = notificationsData.notifications;
           }
@@ -183,7 +173,7 @@ export default function FlexibleDashboard() {
           console.error('Error parsing notifications data:', e);
         }
       }
-      // Calculate today's birthdays
+
       const today = new Date();
       const todaysBirthdays: Birthday[] = students
         .filter((student: Student) => {
@@ -207,10 +197,8 @@ export default function FlexibleDashboard() {
             : 0
         }));
 
-      // Generate recent activities based on actual data
       const recentActivities: Activity[] = [];
 
-      // Add recent student activities
       if (students.length > 0) {
         const recentStudents = students.slice(-3).reverse();
         recentStudents.forEach((student: Student, index: number) => {
@@ -223,7 +211,6 @@ export default function FlexibleDashboard() {
         });
       }
 
-      // Add recent notification activities
       if (notifications.length > 0) {
         const recentNotifications = notifications.slice(-2).reverse();
         recentNotifications.forEach((notification: Notification, index: number) => {
@@ -241,14 +228,13 @@ export default function FlexibleDashboard() {
         recentAssignments.forEach((assignment, index) => {
           recentActivities.push({
             id: Date.now() + index + 200,
-            activity: `New Assignment: "${assignment.title}" for ${assignment.class_name || 'N/A'}`, // Use class_name
+            activity: `New Assignment: "${assignment.title}" for ${assignment.class_name || 'N/A'}`,
             time: getRelativeTime(assignment.created_at),
             type: "assignment"
           });
         });
       }
 
-      // If no real activities, add default one
       if (recentActivities.length === 0) {
         recentActivities.push({
           id: 1,
@@ -258,18 +244,16 @@ export default function FlexibleDashboard() {
         });
       }
 
-      // Count unique teachers from classes
       const uniqueTeachers = new Set(
         classes.map((cls: Class) => cls.teacher_name || 'Unknown')
       ).size;
 
-      // Update dashboard data
       setDashboardData(prevData => ({
         todaysBirthdays: todaysBirthdays.length > 0 ? todaysBirthdays : prevData.todaysBirthdays,
         stats: {
           totalStudents: students.length,
-          totalTeachers: uniqueTeachers > 0 ? uniqueTeachers : 2, // Default to 2 if no real data
-          totalClasses: classes.length > 0 ? classes.length : 8, // Default to 8 if no real data
+          totalTeachers: uniqueTeachers > 0 ? uniqueTeachers : 2,
+          totalClasses: classes.length > 0 ? classes.length : 8,
           activeNotifications: notifications.filter((n: Notification) => !n.is_read).length
         },
         recentActivities: recentActivities.slice(0, 5)
@@ -277,7 +261,6 @@ export default function FlexibleDashboard() {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      // Keep existing mock data if API fails
     } finally {
       setLoading(false);
     }
@@ -305,7 +288,7 @@ export default function FlexibleDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("token");
-    window.location.href = "/";
+    navigate("/login");
   };
 
   const formatTime = (date: Date): string => {
@@ -352,7 +335,6 @@ export default function FlexibleDashboard() {
 
   return (
     <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen flex flex-col">
-      {/* Enhanced Header */}
       <header className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-xl border-b-4 border-blue-200">
         <div className="w-full px-4 sm:px-6 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -365,7 +347,7 @@ export default function FlexibleDashboard() {
 
             <nav className="flex items-center space-x-1">
               {[
-                { name: 'Dashboard', path: '/dashboard', active: true },
+                { name: 'Dashboard', path: '/dashboard' },
                 { name: 'Sections', path: '/sections' },
                 { name: 'Classes', path: '/classes' },
                 { name: 'Assignments', path: '/assignments' },
@@ -375,10 +357,11 @@ export default function FlexibleDashboard() {
                 <button
                   key={item.name}
                   onClick={() => navigate(item.path)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    window.location.pathname === item.path
                       ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
                       : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
-                    }`}
+                  }`}
                 >
                   {item.name}
                 </button>
@@ -394,9 +377,7 @@ export default function FlexibleDashboard() {
         </div>
       </header>
 
-      {/* Flexible Main Content */}
       <main className="flex-1 w-full px-4 sm:px-6 py-6">
-        {/* Welcome Section - Full Width */}
         <div className="mb-6">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -411,7 +392,6 @@ export default function FlexibleDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards - Responsive Horizontal Layout */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6">
           {[
             { title: "Total Students", value: dashboardData.stats.totalStudents, icon: "👥", color: "from-blue-500 to-blue-600" },
@@ -432,14 +412,16 @@ export default function FlexibleDashboard() {
           ))}
         </div>
 
-
-        {/* Quick Actions - Horizontal Flexible */}
-        <div><button
-          onClick={loadDashboardData}
-          className="w-full mt-4 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
-        >
-          Refresh Activities →
-        </button></div> <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+        <div>
+          <button
+            onClick={loadDashboardData}
+            className="w-full mt-4 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Refresh Activities →
+          </button>
+        </div>
+        
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
           <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">Quick Actions</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
@@ -457,10 +439,10 @@ export default function FlexibleDashboard() {
                 <span className="leading-tight">{action.name}</span>
               </button>
             ))}
-          </div></div>
-        {/* Main Dashboard Content - Flexible Horizontal Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-6">
-          {/* Today's Birthdays - Flexible */}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-6 mt-6">
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800">Today's Birthdays</h3>
@@ -486,8 +468,6 @@ export default function FlexibleDashboard() {
             )}
           </div>
 
-
-          {/* Recent Activities - Flexible */}
           <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800">Recent Activities</h3>
@@ -508,14 +488,10 @@ export default function FlexibleDashboard() {
                 <p className="text-gray-500 text-center py-8 text-sm">No recent activities</p>
               )}
             </div>
-
-
-
           </div>
         </div>
       </main>
 
-      {/* Enhanced Footer */}
       <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-gray-300 text-center py-4 sm:py-6 mt-auto">
         <div className="w-full px-4 sm:px-6">
           <p className="text-xs sm:text-sm">© 2025 MyDschool Portal. All rights reserved.</p>

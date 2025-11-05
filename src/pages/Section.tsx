@@ -35,7 +35,6 @@ export default function Sections() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check authentication
     const user = localStorage.getItem("currentUser");
     if (!user) {
       navigate("/login");
@@ -85,14 +84,12 @@ export default function Sections() {
     setIsLoading(true);
     setMessage({ type: '', text: '' });
 
-    // Validation
     if (!formData.section || !formData.startTime || !formData.endTime) {
       setMessage({ type: 'error', text: 'Please fill in all required fields (Section, Start Time, End Time)' });
       setIsLoading(false);
       return;
     }
 
-    // Time validation
     if (formData.startTime >= formData.endTime) {
       setMessage({ type: 'error', text: 'End time must be after start time' });
       setIsLoading(false);
@@ -107,10 +104,8 @@ export default function Sections() {
       if (result.success) {
         setMessage({ type: 'success', text: 'Section saved successfully!' });
         setFormData({ section: '', startTime: '', endTime: '' });
-        // Refresh the sections list
         await fetchSections();
         
-        // Clear success message after 3 seconds
         setTimeout(() => {
           setMessage({ type: '', text: '' });
         }, 3000);
@@ -125,8 +120,6 @@ export default function Sections() {
     }
   };
 
-  // Delete function removed - sections should not be deleted as they can be reused by multiple classes
-
   const sectionOptions: SectionOption[] = [
     { value: 'KG', label: 'Kindergarten', color: 'from-pink-500 to-rose-500' },
     { value: 'Primary', label: 'Primary School', color: 'from-blue-500 to-cyan-500' },
@@ -135,7 +128,6 @@ export default function Sections() {
 
   return (
     <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen flex flex-col">
-      {/* Enhanced Header */}
       <header className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-xl border-b-4 border-blue-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -149,23 +141,23 @@ export default function Sections() {
             <nav className="flex items-center space-x-1">
               {[
                 { name: 'Dashboard', path: '/dashboard' },
-                { name: 'Sections', path: '/sections', active: true },
+                { name: 'Sections', path: '/sections' },
                 { name: 'Classes', path: '/classes' },
-            {name: "Assignments", path: '/assignments'},
-                   { name: 'Profile', path: '/profile' },
+                { name: "Assignments", path: '/assignments' },
+                { name: 'Profile', path: '/profile' },
                 { name: 'Notifications', path: '/notifications' }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.path}
+                  onClick={() => navigate(item.path)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    item.active 
+                    item.path === '/sections'
                       ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg' 
                       : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                   }`}
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
               <button 
                 onClick={handleLogout}
@@ -178,9 +170,7 @@ export default function Sections() {
         </div>
       </header>
 
-      {/* Enhanced Main Content */}
       <main className="flex-1 max-w-6xl mx-auto px-6 py-12">
-        {/* Status Message */}
         {message.text && (
           <div className={`mb-6 p-4 rounded-xl ${
             message.type === 'success' 
@@ -207,7 +197,6 @@ export default function Sections() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Form Section */}
           <div className="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100 h-fit">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
@@ -217,7 +206,6 @@ export default function Sections() {
             </div>
 
             <form onSubmit={handleSave} className="space-y-6">
-              {/* Section Selection */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-4">
                   Select Section *
@@ -256,7 +244,6 @@ export default function Sections() {
                 </div>
               </div>
 
-              {/* Time Selection */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -286,9 +273,6 @@ export default function Sections() {
                 </div>
               </div>
 
-              {/* Description Field - Removed as not needed */}
-              
-              {/* Action Buttons */}
               <div className="flex space-x-3">
                 <button
                   type="button"
@@ -320,7 +304,6 @@ export default function Sections() {
             </form>
           </div>
 
-          {/* Saved Sections Display */}
           <div className="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-bold text-gray-800">
@@ -352,50 +335,48 @@ export default function Sections() {
               </div>
             ) : (
               <div className="space-y-4 max-h-96 overflow-y-auto">
-               {savedSections.map((section) => {
-  const sectionInfo = sectionOptions.find(opt => opt.value === section.section_name);
-  return (
-    <div key={section.id} className={`p-4 rounded-xl bg-gradient-to-r ${sectionInfo?.color || 'from-gray-500 to-gray-600'} text-white shadow-lg`}>
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-bold text-lg">{sectionInfo?.label || section.section_name}</h4>
-        <button
-          onClick={async () => {
-            if (!confirm(`Are you sure you want to delete ${section.section_name} section? This cannot be undone if the section is not used by any classes.`)) {
-              return;
-            }
-            
-            try {
-              setIsLoading(true); 
-              1
-              const result = await sectionAPI.deleteSection(section.id);
-              if (result.success) {
-                setMessage({ type: 'success', text: 'Section deleted successfully!' });
-                await fetchSections();
-                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-              } else {
-                setMessage({ type: 'error', text: result.message || 'Failed to delete section' });
-              }
-            } catch (error: any) {
-              setMessage({ type: 'error', text: error.message || 'Failed to delete section' });
-            } finally {
-              setIsLoading(false);
-            }
-          }}
-          className="p-1.5 bg-white/20 hover:bg-red-600 rounded-lg transition-colors"
-          title="Delete section"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-        </button>
-      </div>
-      <div className="space-y-1 text-sm opacity-90">
-        <p><span className="font-medium">Time:</span> {section.start_time} - {section.end_time}</p>
-        <p className="text-xs opacity-75">Created: {new Date(section.created_at).toLocaleString()}</p>
-      </div>
-    </div>
-  );
-
+                {savedSections.map((section) => {
+                  const sectionInfo = sectionOptions.find(opt => opt.value === section.section_name);
+                  return (
+                    <div key={section.id} className={`p-4 rounded-xl bg-gradient-to-r ${sectionInfo?.color || 'from-gray-500 to-gray-600'} text-white shadow-lg`}>
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-lg">{sectionInfo?.label || section.section_name}</h4>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Are you sure you want to delete ${section.section_name} section?`)) {
+                              return;
+                            }
+                            
+                            try {
+                              setIsLoading(true);
+                              const result = await sectionAPI.deleteSection(section.id);
+                              if (result.success) {
+                                setMessage({ type: 'success', text: 'Section deleted successfully!' });
+                                await fetchSections();
+                                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+                              } else {
+                                setMessage({ type: 'error', text: result.message || 'Failed to delete section' });
+                              }
+                            } catch (error: any) {
+                              setMessage({ type: 'error', text: error.message || 'Failed to delete section' });
+                            } finally {
+                              setIsLoading(false);
+                            }
+                          }}
+                          className="p-1.5 bg-white/20 hover:bg-red-600 rounded-lg transition-colors"
+                          title="Delete section"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="space-y-1 text-sm opacity-90">
+                        <p><span className="font-medium">Time:</span> {section.start_time} - {section.end_time}</p>
+                        <p className="text-xs opacity-75">Created: {new Date(section.created_at).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  );
                 })}
               </div>
             )}
@@ -403,7 +384,6 @@ export default function Sections() {
         </div>
       </main>
 
-      {/* Enhanced Footer */}
       <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-gray-300 text-center py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-6">
           <p className="text-sm">© 2025 MyDSchool Portal. All rights reserved.</p>

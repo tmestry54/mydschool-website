@@ -85,20 +85,20 @@ export default function Notifications() {
       console.error('Error loading classes:', error);
     }
   };
-const handleViewDocument = (filePath: string) => {
-  const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
-  window.open(fileUrl, '_blank');
-};
+  const handleViewDocument = (filePath: string) => {
+    const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
+    window.open(fileUrl, '_blank');
+  };
   const handleDownloadDocument = (filePath: string, fileName: string) => {
-  const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
-  const link = document.createElement('a');
-  link.href = fileUrl;
-  link.download = fileName || 'notification.pdf';
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+    const fileUrl = getFileUrl(filePath); // ✅ Use centralized function
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = fileName || 'notification.pdf';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   const loadNotifications = async () => {
     try {
       const response = await notificationAPI.getAllNotifications();
@@ -475,18 +475,18 @@ const handleViewDocument = (filePath: string) => {
                 { name: 'Classes', path: '/classes' },
                 { name: "Assignments", path: '/assignments' },
                 { name: 'Profile', path: '/profile' },
-                { name: 'Notifications', path: '/notifications', active: true }
+                { name: 'Notifications', path: '/notifications' }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
-                    ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
-                    : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
+                  onClick={() => navigate(item.path)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.path === '/notifications'
+                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
+                      : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                     }`}
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
               <button
                 onClick={handleLogout}
@@ -494,8 +494,7 @@ const handleViewDocument = (filePath: string) => {
               >
                 Logout
               </button>
-            </nav>
-          </div>
+            </nav>         </div>
         </div>
       </header>
 
@@ -620,7 +619,7 @@ const handleViewDocument = (filePath: string) => {
                 rows={4}
                 className="w-full px-6 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
               ></textarea>
-              
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -740,8 +739,8 @@ const handleViewDocument = (filePath: string) => {
                 : isEditMode
                   ? 'Update Notification'
                   : recipientType === 'all'
-                    ? `Send to Entire Class (${students.length} students)`  
-                    : `Send to Selected Students (${selectedStudents.length})` 
+                    ? `Send to Entire Class (${students.length} students)`
+                    : `Send to Selected Students (${selectedStudents.length})`
               }
             </button>
           </div>

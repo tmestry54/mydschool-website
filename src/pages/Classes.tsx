@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// API service
 import { classAPI } from "../services/api";
 
 interface FormData {
@@ -39,7 +38,6 @@ export default function Classes() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check authentication
     const user = localStorage.getItem("currentUser");
     if (!user) {
       navigate("/login");
@@ -91,7 +89,6 @@ export default function Classes() {
     setIsLoading(true);
     setMessage({ type: '', text: '' });
 
-    // Validation
     if (!formData.classWithDivision || !formData.section_id || !formData.teacherName) {
       setMessage({ type: 'error', text: 'Please fill in all required fields' });
       setIsLoading(false);
@@ -113,11 +110,7 @@ export default function Classes() {
       if (result.success) {
         setMessage({ type: 'success', text: 'Class added successfully!' });
         setFormData({ classWithDivision: "", section_id: "", teacherName: "" });
-
-        // Refresh the classes list
         await fetchClasses();
-
-        // Clear success message after 3 seconds
         setTimeout(() => {
           setMessage({ type: '', text: '' });
         }, 3000);
@@ -151,7 +144,6 @@ export default function Classes() {
 
   return (
     <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen flex flex-col">
-      {/* Enhanced Header */}
       <header className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 text-white shadow-xl border-b-4 border-blue-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -166,22 +158,24 @@ export default function Classes() {
               {[
                 { name: 'Dashboard', path: '/dashboard' },
                 { name: 'Sections', path: '/sections' },
-                { name: 'Classes', path: '/classes', active: true },
+                { name: 'Classes', path: '/classes' },
                 { name: "Assignments", path: '/assignments' },
                 { name: 'Profile', path: '/profile' },
                 { name: 'Notifications', path: '/notifications' }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.path}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
-                    ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
-                    : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
-                    }`}
+                  onClick={() => navigate(item.path)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    item.path === '/classes'
+                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
+                      : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
+                  }`}
                 >
                   {item.name}
-                </a>
-              ))}           <button
+                </button>
+              ))}
+              <button
                 onClick={handleLogout}
                 className="ml-4 px-4 py-2 bg-white/10 hover:bg-red-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl text-white"
               >
@@ -193,12 +187,12 @@ export default function Classes() {
       </header>
 
       <main className="relative max-w-7xl mx-auto p-8">
-        {/* Status Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-xl ${message.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
+          <div className={`mb-6 p-4 rounded-xl ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 {message.type === 'success' ? (
@@ -222,9 +216,8 @@ export default function Classes() {
           <h2 className="text-4xl font-bold text-gray-800 mb-4 animate-fade-in">Class & Division Management</h2>
           <p className="text-gray-600 text-lg">Configure and manage your class divisions</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          {/* Form Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/50 overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
               <h3 className="text-2xl font-bold text-white flex items-center">
@@ -234,8 +227,8 @@ export default function Classes() {
                 Add New Class
               </h3>
             </div>
+
             <form onSubmit={handleSubmit} className="p-8 space-y-8">
-              {/* Class Name Input */}
               <div className="space-y-3">
                 <label className="block text-lg font-semibold text-gray-700 mb-2">
                   Class Name with Division *
@@ -256,7 +249,6 @@ export default function Classes() {
                 </div>
               </div>
 
-              {/* Section Selection */}
               <div className="space-y-4">
                 <label className="block text-lg font-semibold text-gray-700">
                   Select Section *
@@ -277,7 +269,6 @@ export default function Classes() {
                 </select>
               </div>
 
-              {/* Teacher Name */}
               <div className="space-y-3">
                 <label className="block text-lg font-semibold text-gray-700">
                   Teacher Name *
@@ -298,7 +289,6 @@ export default function Classes() {
                 </div>
               </div>
 
-              {/* Submit Button */}
               <div className="flex justify-center pt-6">
                 <button
                   type="submit"
@@ -329,7 +319,6 @@ export default function Classes() {
             </form>
           </div>
 
-          {/* Saved Classes Display */}
           <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/50">
             <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-6">
               <div className="flex justify-between items-center">
@@ -374,7 +363,7 @@ export default function Classes() {
                           </span>
                           <button
                             onClick={async () => {
-                              if (!confirm(`Are you sure you want to delete Class ${savedClass.class_name}? This cannot be undone if the class has no enrolled students.`)) {
+                              if (!confirm(`Are you sure you want to delete Class ${savedClass.class_name}?`)) {
                                 return;
                               }
 
@@ -410,7 +399,8 @@ export default function Classes() {
                         <p className="text-xs opacity-75">Created: {new Date(savedClass.created_at).toLocaleString()}</p>
                       </div>
                     </div>
-                  ))}                </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

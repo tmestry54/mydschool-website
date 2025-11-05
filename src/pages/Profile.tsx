@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { classAPI, adminAPI, profileAPI } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -315,7 +316,7 @@ export default function Profile() {
     alert("Logged out successfully");
     window.location.href = "/";
   };
-
+const navigate = useNavigate();
   if (loading && !error && !success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -339,35 +340,35 @@ export default function Profile() {
               <h1 className="text-2xl font-bold tracking-wide">MyDschool Portal</h1>
             </div>
 
-            <nav className="flex items-center space-x-1">
+             <nav className="flex items-center space-x-1">
               {[
                 { name: 'Dashboard', path: '/dashboard' },
                 { name: 'Sections', path: '/sections' },
                 { name: 'Classes', path: '/classes' },
                 { name: "Assignments", path: '/assignments' },
-                { name: 'Profile', path: '/profile', active: true },
+                { name: 'Profile', path: '/profile' },
                 { name: 'Notifications', path: '/notifications' }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.path}
+                  onClick={() => navigate(item.path)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    item.active
+                    item.path === '/classes'
                       ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
                       : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                   }`}
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
               <button
                 onClick={logout}
-                className="ml-4 px-4 py-2 bg-white/10 hover:bg-red-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="ml-4 px-4 py-2 bg-white/10 hover:bg-red-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl text-white"
               >
                 Logout
               </button>
             </nav>
-          </div>
+         </div>
         </div>
       </header>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { assignmentAPI, classAPI, getFileUrl } from "../services/api"; // ✅ Add getFileUrl
-interface  AssignmentForm {
+interface AssignmentForm {
   class_id: string;
   title: string;
   description: string;
@@ -101,13 +101,13 @@ export default function Assignments() {
     setViewMode(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-const handleViewDocument = (filePath: string) => {
-  const fileUrl = getFileUrl(filePath);
-  window.open(fileUrl, '_blank');
-};
+  const handleViewDocument = (filePath: string) => {
+    const fileUrl = getFileUrl(filePath);
+    window.open(fileUrl, '_blank');
+  };
   const handleDownloadDocument = (filePath: string, fileName: string) => {
-  const fileUrl = getFileUrl(filePath);  
-  const link = document.createElement('a');
+    const fileUrl = getFileUrl(filePath);
+    const link = document.createElement('a');
     link.href = fileUrl;
     link.download = fileName || 'assignment.pdf';
     link.target = '_blank';
@@ -232,26 +232,25 @@ const handleViewDocument = (filePath: string) => {
                 </div>
                 <h1 className="text-2xl font-bold tracking-wide">MyDschool Portal</h1>
               </div>
-
               <nav className="flex items-center space-x-1">
                 {[
-                  { name: "Dashboard", href: "/dashboard" },
-                  { name: "Sections", href: "/sections" },
-                  { name: "Classes", href: "/classes" },
-                  { name: "Assignments", href: "/assignments", active: true },
-                  { name: "Profile", href: "/profile" },
-                  { name: "Notifications", href: "/notifications" }
+                  { name: "Dashboard", path: "/dashboard" },
+                  { name: "Sections", path: "/sections" },
+                  { name: "Classes", path: "/classes" },
+                  { name: "Assignments", path: "/assignments" },
+                  { name: "Profile", path: "/profile" },
+                  { name: "Notifications", path: "/notifications" }
                 ].map((item) => (
-                  <a
+                  <button
                     key={item.name}
-                    href={item.href}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
+                    onClick={() => navigate(item.path)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.path === '/assignments'
                         ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
                         : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                       }`}
                   >
                     {item.name}
-                  </a>
+                  </button>
                 ))}
                 <button
                   onClick={handleLogout}
@@ -403,8 +402,8 @@ const handleViewDocument = (filePath: string) => {
                   key={item.name}
                   href={item.href}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
-                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
-                      : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
+                    ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
+                    : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                     }`}
                 >
                   {item.name}
@@ -424,8 +423,8 @@ const handleViewDocument = (filePath: string) => {
       <main className="max-w-7xl mx-auto p-8">
         {message.text && (
           <div className={`mb-6 p-4 rounded-xl ${message.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
+            ? 'bg-green-50 text-green-700 border border-green-200'
+            : 'bg-red-50 text-red-700 border border-red-200'
             }`}>
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -459,8 +458,8 @@ const handleViewDocument = (filePath: string) => {
               }
             }}
             className={`${showForm
-                ? 'bg-gray-600 hover:bg-gray-700'
-                : 'bg-blue-600 hover:bg-blue-700'
+              ? 'bg-gray-600 hover:bg-gray-700'
+              : 'bg-blue-600 hover:bg-blue-700'
               } text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2`}
           >
             {showForm ? (
