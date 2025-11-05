@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ ADD THIS
 import { classAPI, adminAPI, profileAPI } from "../services/api";
-import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -16,6 +16,8 @@ interface Class {
 }
 
 export default function Profile() {
+  const navigate = useNavigate(); // ✅ ADD THIS
+  
   const [formData, setFormData] = useState({
     class_id: '',
     first_name: '',
@@ -48,7 +50,7 @@ export default function Profile() {
     const currentUser = localStorage.getItem("currentUser");
     if (!currentUser) {
       alert("Please log in first");
-      window.location.href = "/";
+      navigate("/login"); // ✅ FIXED
       return;
     }
 
@@ -65,9 +67,9 @@ export default function Profile() {
     } catch (error) {
       console.error('Error parsing user data:', error);
       alert("Invalid user session. Please log in again.");
-      window.location.href = "/";
+      navigate("/login"); // ✅ FIXED
     }
-  }, []);
+  }, [navigate]);
 
   const loadClasses = async () => {
     try {
@@ -195,7 +197,6 @@ export default function Profile() {
       if (result.success) {
         setSuccess(isEditing ? 'Profile updated successfully!' : 'Student added successfully!');
 
-        // Dispatch event to refresh dashboard
         window.dispatchEvent(new Event('studentDataUpdated'));
 
         if (!isEditing) {
@@ -257,7 +258,6 @@ export default function Profile() {
           console.log('Import errors:', result.data.errorDetails);
         }
 
-        // Dispatch event to refresh dashboard
         window.dispatchEvent(new Event('studentDataUpdated'));
 
         setFormData(prev => ({ ...prev, excelFile: null }));
@@ -295,7 +295,6 @@ export default function Profile() {
           setError(`${result.data.failed} students failed to import. Check console for details.`);
         }
 
-        // Dispatch event to refresh dashboard
         window.dispatchEvent(new Event('studentDataUpdated'));
 
         setFormData(prev => ({ ...prev, zipFile: null }));
@@ -310,13 +309,12 @@ export default function Profile() {
     }
   };
 
-  const logout = () => {
+  const handleLogout = () => { // ✅ RENAMED from logout
     localStorage.removeItem("currentUser");
     localStorage.removeItem("token");
-    alert("Logged out successfully");
-    window.location.href = "/";
+    navigate("/login");
   };
-const navigate = useNavigate();
+
   if (loading && !error && !success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -340,7 +338,7 @@ const navigate = useNavigate();
               <h1 className="text-2xl font-bold tracking-wide">MyDschool Portal</h1>
             </div>
 
-             <nav className="flex items-center space-x-1">
+            <nav className="flex items-center space-x-1">
               {[
                 { name: 'Dashboard', path: '/dashboard' },
                 { name: 'Sections', path: '/sections' },
@@ -353,7 +351,7 @@ const navigate = useNavigate();
                   key={item.name}
                   onClick={() => navigate(item.path)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    item.path === '/classes'
+                    item.path === '/profile'
                       ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
                       : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                   }`}
@@ -362,13 +360,13 @@ const navigate = useNavigate();
                 </button>
               ))}
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="ml-4 px-4 py-2 bg-white/10 hover:bg-red-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl text-white"
               >
                 Logout
               </button>
             </nav>
-         </div>
+          </div>
         </div>
       </header>
 
@@ -546,7 +544,6 @@ const navigate = useNavigate();
                     </label>
                     <div className="relative">
                       <input
-                        
                         type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
@@ -647,67 +644,62 @@ const navigate = useNavigate();
                 </div>
 
                 {!isEditing && user?.role !== 'student' && (
-  <>
-    {/* Excel Only Upload */}
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">
-        📄 Upload Excel Sheet Only (No Photos)
-      </label>
-      <input
-        type="file"
-        name="excelFile"
-        onChange={handleInputChange}
-        accept=".xls,.xlsx,.csv"
-        className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all duration-200"
-      />
-      {formData.excelFile && (
-        <button
-          type="button"
-          onClick={handleBulkUpload}
-          disabled={loading}
-          className="mt-3 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all duration-200"
-        >
-          {loading ? 'Uploading...' : 'Upload Excel File'}
-        </button>
-      )}
-    </div>
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        📄 Upload Excel Sheet Only (No Photos)
+                      </label>
+                      <input
+                        type="file"
+                        name="excelFile"
+                        onChange={handleInputChange}
+                        accept=".xls,.xlsx,.csv"
+                        className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all duration-200"
+                      />
+                      {formData.excelFile && (
+                        <button
+                          type="button"
+                          onClick={handleBulkUpload}
+                          disabled={loading}
+                          className="mt-3 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all duration-200"
+                        >
+                          {loading ? 'Uploading...' : 'Upload Excel File'}
+                        </button>
+                      )}
+                    </div>
 
-    {/* ZIP Upload with Photos */}
-    <div className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-      <label className="block text-sm font-semibold text-blue-700 mb-2">
-        Upload ZIP File (Excel + Photos)
-      </label>
-      <input
-        type="file"
-        name="zipFile"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) {
-            setFormData(prev => ({ ...prev, zipFile: file }));
-          }
-        }}
-        accept=".zip"
-        className="w-full border-2 border-dashed border-blue-300 rounded-xl p-4 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-white"
-      />
-      {formData.zipFile && (
-        <button
-          type="button"
-          onClick={handleZipUpload}
-          disabled={loading}
-          className="mt-3 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
-        >
-          {loading ? 'Uploading ZIP...' : 'Upload ZIP with Photos'}
-        </button>
-      )}
-      <p className="mt-2 text-xs text-blue-600">
-        ZIP must contain: students.xlsx + photos folder
-      </p>
-    </div>
-  </>
-)}
-
-                  
-                
+                    <div className="mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                      <label className="block text-sm font-semibold text-blue-700 mb-2">
+                        📦 Upload ZIP File (Excel + Photos)
+                      </label>
+                      <input
+                        type="file"
+                        name="zipFile"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFormData(prev => ({ ...prev, zipFile: file }));
+                          }
+                        }}
+                        accept=".zip"
+                        className="w-full border-2 border-dashed border-blue-300 rounded-xl p-4 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-white"
+                      />
+                      {formData.zipFile && (
+                        <button
+                          type="button"
+                          onClick={handleZipUpload}
+                          disabled={loading}
+                          className="mt-3 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all duration-200"
+                        >
+                          {loading ? 'Uploading ZIP...' : 'Upload ZIP with Photos'}
+                        </button>
+                      )}
+                      <p className="mt-2 text-xs text-blue-600">
+                        ZIP must contain: students.xlsx + photos folder
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

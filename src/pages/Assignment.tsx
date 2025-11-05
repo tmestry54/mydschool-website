@@ -245,8 +245,8 @@ export default function Assignments() {
                     key={item.name}
                     onClick={() => navigate(item.path)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.path === '/assignments'
-                        ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
-                        : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
+                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
+                      : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                       }`}
                   >
                     {item.name}
@@ -391,23 +391,23 @@ export default function Assignments() {
 
             <nav className="flex items-center space-x-1">
               {[
-                { name: "Dashboard", href: "/dashboard" },
-                { name: "Sections", href: "/sections" },
-                { name: "Classes", href: "/classes" },
-                { name: "Assignments", href: "/assignments", active: true },
-                { name: "Profile", href: "/profile" },
-                { name: "Notifications", href: "/notifications" }
+                { name: "Dashboard", path: "/dashboard" },
+                { name: "Sections", path: "/sections" },
+                { name: "Classes", path: "/classes" },
+                { name: "Assignments", path: "/assignments" },
+                { name: "Profile", path: "/profile" },
+                { name: "Notifications", path: "/notifications" }
               ].map((item) => (
-                <a
+                <button
                   key={item.name}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.active
-                    ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
-                    : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
+                  onClick={() => navigate(item.path)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${item.path === '/assignments'
+                      ? 'bg-white bg-opacity-20 text-white font-semibold shadow-lg'
+                      : 'hover:bg-white hover:bg-opacity-10 hover:text-white'
                     }`}
                 >
                   {item.name}
-                </a>
+                </button>
               ))}
               <button
                 onClick={handleLogout}
@@ -415,8 +415,7 @@ export default function Assignments() {
               >
                 Logout
               </button>
-            </nav>
-          </div>
+            </nav>  </div>
         </div>
       </header>
 
