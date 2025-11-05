@@ -479,7 +479,7 @@ export const getFileUrl = (filePath: string): string => {
 export const authAPI = {
   login: async (username: string, password: string) => {
     try {
-      const response = await apiClient.post('/auth/login', { username, password });
+      const response = await apiClient.post('/login', { username, password });
       return response.data;
     } catch (error: any) {
       if (error.response) {
