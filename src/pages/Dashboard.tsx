@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import Assignment from "./Assignment";
+import { useNavigate } from "react-router-dom"; // ✅ ADD THIS IMPORT
 import { apiClient } from "../services/api";
+
 interface Birthday {
   id: number;
   name: string;
@@ -13,11 +14,12 @@ interface Assignment {
   class_id: number;
   title: string;
   description?: string;
-  class_name: string;        // Change from 'class' to 'class_name'
+  class_name: string;
   section_name?: string;
   file_path?: string;
   created_at?: string;
 }
+
 interface Activity {
   id: number;
   activity: string;
@@ -62,13 +64,13 @@ interface Notification {
 }
 
 export default function FlexibleDashboard() {
+  const navigate = useNavigate(); // ✅ MOVED TO TOP
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     todaysBirthdays: [
       { id: 1, name: "Alice Johnson", class: "5A", age: 11 },
       { id: 2, name: "Michael Chen", class: "3B", age: 9 }
     ],
-    
     stats: {
       totalStudents: 0,
       totalTeachers: 0,
@@ -82,13 +84,17 @@ export default function FlexibleDashboard() {
   
   const [loading, setLoading] = useState(true);
 
+  // ✅ SINGLE COMBINED useEffect
   useEffect(() => {
-    // Check authentication
+    // Check authentication first
     const user = localStorage.getItem("currentUser");
     if (!user) {
-      alert("Please log in first");
+      console.log('❌ No user found, redirecting to login...');
+      navigate("/login", { replace: true });
       return;
     }
+    
+    console.log('✅ User authenticated:', JSON.parse(user));
 
     // Load initial data
     loadDashboardData();
@@ -105,15 +111,17 @@ export default function FlexibleDashboard() {
     };
 
     window.addEventListener('studentDataUpdated', handleDataUpdate);
-window.addEventListener('assignmentDataUpdated', handleDataUpdate); // ADD THIS LINE
+    window.addEventListener('assignmentDataUpdated', handleDataUpdate);
 
+    // Cleanup function
     return () => {
       clearInterval(timer);
       window.removeEventListener('studentDataUpdated', handleDataUpdate);
-   window.removeEventListener('assignmentDataUpdated', handleDataUpdate); // ADD THIS LINE
-  };
-  }, []);
+      window.removeEventListener('assignmentDataUpdated', handleDataUpdate);
+    };
+  }, [navigate]); // ✅ ADDED navigate TO DEPENDENCIES
 
+  
   const loadDashboardData = async () => {
     try {
       setLoading(true);
