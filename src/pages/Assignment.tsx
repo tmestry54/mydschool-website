@@ -177,7 +177,6 @@ export default function Assignments() {
     if (!window.confirm(`Are you sure you want to delete "${assignmentTitle}"?`)) {
       return;
     }
-
     try {
       setIsLoading(true);
       const result = await assignmentAPI.deleteAssignment(assignmentId);
